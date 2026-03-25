@@ -1,0 +1,124 @@
+* {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  /* 加入這行，確保 padding 不會增加元素的總寬高 */
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden; /* 強制禁止 iframe 出現捲軸 */
+}
+
+canvas {
+  display: block;
+  /* 確保畫布填滿背景且不佔位 */
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 0;
+}
+
+h2 {
+  font-size: 40px;
+  margin: 0; /* 移除 margin */
+  padding-top: 64px; /* 改用 padding */
+}
+
+button {
+  background-color: #b7b1a1;
+  border: none;
+  color: #554e40;
+  text-align: left;
+  text-decoration: none;
+  display: inline-block;
+  font-family: fot-rodin-pron, sans-serif;
+  font-size: 16px;
+  width: 256px;
+  padding: 4px 8px;
+  letter-spacing: normal;
+}
+
+button:hover {
+  background-color: #6f6a61;
+  color: #d2cec4;
+  cursor: pointer;
+  box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.1);
+}
+
+button:focus {
+  outline: 0;
+}
+
+.full-screen {
+  position: absolute; /* 改為 absolute */
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background-color: #d1c9b6;
+  color: #554e40;
+  display: flex;
+  flex-direction: column;
+  /* 避免內陰影與邊距產生計算誤差 */
+  margin: 0;
+  padding: 0;
+  box-shadow: 0 0 200px rgba(0, 0, 0, 0.8) inset;
+}
+
+#menu {
+  justify-content: space-between;
+  z-index: 2;
+}
+
+#menu .row {
+  margin: 0 64px;
+}
+
+#menu .footer {
+  background-color: #dad2c0;
+  margin: 0 64px 64px 64px; /* 修正 margin 寫法，確保底部間距正確 */
+  padding: 16px;
+  box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.25);
+}
+
+#menu.hidden {
+  display: none;
+}
+
+.info {
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  letter-spacing: 32px;
+  text-decoration: underline;
+  z-index: 1;
+  visibility: visible;
+  opacity: 1;
+  transition:
+    visibility 0.2s,
+    opacity 0.2s ease-in;
+}
+
+.info.hidden {
+  visibility: hidden;
+  opacity: 0;
+}
+
+#start-screen {
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+}
+
+#stage-counter {
+  text-align: right;
+}
