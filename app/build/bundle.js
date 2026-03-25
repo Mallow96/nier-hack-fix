@@ -28812,285 +28812,298 @@
 
 	} );
 
-	class CylinderBufferGeometry extends BufferGeometry {
+	class PolyhedronBufferGeometry extends BufferGeometry {
 
-		constructor( radiusTop = 1, radiusBottom = 1, height = 1, radialSegments = 8, heightSegments = 1, openEnded = false, thetaStart = 0, thetaLength = Math.PI * 2 ) {
+		constructor( vertices, indices, radius = 1, detail = 0 ) {
 
 			super();
-			this.type = 'CylinderBufferGeometry';
+
+			this.type = 'PolyhedronBufferGeometry';
 
 			this.parameters = {
-				radiusTop: radiusTop,
-				radiusBottom: radiusBottom,
-				height: height,
-				radialSegments: radialSegments,
-				heightSegments: heightSegments,
-				openEnded: openEnded,
-				thetaStart: thetaStart,
-				thetaLength: thetaLength
-			};
-
-			const scope = this;
-
-			radialSegments = Math.floor( radialSegments );
-			heightSegments = Math.floor( heightSegments );
-
-			// buffers
-
-			const indices = [];
-			const vertices = [];
-			const normals = [];
-			const uvs = [];
-
-			// helper variables
-
-			let index = 0;
-			const indexArray = [];
-			const halfHeight = height / 2;
-			let groupStart = 0;
-
-			// generate geometry
-
-			generateTorso();
-
-			if ( openEnded === false ) {
-
-				if ( radiusTop > 0 ) generateCap( true );
-				if ( radiusBottom > 0 ) generateCap( false );
-
-			}
-
-			// build geometry
-
-			this.setIndex( indices );
-			this.setAttribute( 'position', new Float32BufferAttribute( vertices, 3 ) );
-			this.setAttribute( 'normal', new Float32BufferAttribute( normals, 3 ) );
-			this.setAttribute( 'uv', new Float32BufferAttribute( uvs, 2 ) );
-
-			function generateTorso() {
-
-				const normal = new Vector3();
-				const vertex = new Vector3();
-
-				let groupCount = 0;
-
-				// this will be used to calculate the normal
-				const slope = ( radiusBottom - radiusTop ) / height;
-
-				// generate vertices, normals and uvs
-
-				for ( let y = 0; y <= heightSegments; y ++ ) {
-
-					const indexRow = [];
-
-					const v = y / heightSegments;
-
-					// calculate the radius of the current row
-
-					const radius = v * ( radiusBottom - radiusTop ) + radiusTop;
-
-					for ( let x = 0; x <= radialSegments; x ++ ) {
-
-						const u = x / radialSegments;
-
-						const theta = u * thetaLength + thetaStart;
-
-						const sinTheta = Math.sin( theta );
-						const cosTheta = Math.cos( theta );
-
-						// vertex
-
-						vertex.x = radius * sinTheta;
-						vertex.y = - v * height + halfHeight;
-						vertex.z = radius * cosTheta;
-						vertices.push( vertex.x, vertex.y, vertex.z );
-
-						// normal
-
-						normal.set( sinTheta, slope, cosTheta ).normalize();
-						normals.push( normal.x, normal.y, normal.z );
-
-						// uv
-
-						uvs.push( u, 1 - v );
-
-						// save index of vertex in respective row
-
-						indexRow.push( index ++ );
-
-					}
-
-					// now save vertices of the row in our index array
-
-					indexArray.push( indexRow );
-
-				}
-
-				// generate indices
-
-				for ( let x = 0; x < radialSegments; x ++ ) {
-
-					for ( let y = 0; y < heightSegments; y ++ ) {
-
-						// we use the index array to access the correct indices
-
-						const a = indexArray[ y ][ x ];
-						const b = indexArray[ y + 1 ][ x ];
-						const c = indexArray[ y + 1 ][ x + 1 ];
-						const d = indexArray[ y ][ x + 1 ];
-
-						// faces
-
-						indices.push( a, b, d );
-						indices.push( b, c, d );
-
-						// update group counter
-
-						groupCount += 6;
-
-					}
-
-				}
-
-				// add a group to the geometry. this will ensure multi material support
-
-				scope.addGroup( groupStart, groupCount, 0 );
-
-				// calculate new start value for groups
-
-				groupStart += groupCount;
-
-			}
-
-			function generateCap( top ) {
-
-				// save the index of the first center vertex
-				const centerIndexStart = index;
-
-				const uv = new Vector2();
-				const vertex = new Vector3();
-
-				let groupCount = 0;
-
-				const radius = ( top === true ) ? radiusTop : radiusBottom;
-				const sign = ( top === true ) ? 1 : - 1;
-
-				// first we generate the center vertex data of the cap.
-				// because the geometry needs one set of uvs per face,
-				// we must generate a center vertex per face/segment
-
-				for ( let x = 1; x <= radialSegments; x ++ ) {
-
-					// vertex
-
-					vertices.push( 0, halfHeight * sign, 0 );
-
-					// normal
-
-					normals.push( 0, sign, 0 );
-
-					// uv
-
-					uvs.push( 0.5, 0.5 );
-
-					// increase index
-
-					index ++;
-
-				}
-
-				// save the index of the last center vertex
-				const centerIndexEnd = index;
-
-				// now we generate the surrounding vertices, normals and uvs
-
-				for ( let x = 0; x <= radialSegments; x ++ ) {
-
-					const u = x / radialSegments;
-					const theta = u * thetaLength + thetaStart;
-
-					const cosTheta = Math.cos( theta );
-					const sinTheta = Math.sin( theta );
-
-					// vertex
-
-					vertex.x = radius * sinTheta;
-					vertex.y = halfHeight * sign;
-					vertex.z = radius * cosTheta;
-					vertices.push( vertex.x, vertex.y, vertex.z );
-
-					// normal
-
-					normals.push( 0, sign, 0 );
-
-					// uv
-
-					uv.x = ( cosTheta * 0.5 ) + 0.5;
-					uv.y = ( sinTheta * 0.5 * sign ) + 0.5;
-					uvs.push( uv.x, uv.y );
-
-					// increase index
-
-					index ++;
-
-				}
-
-				// generate indices
-
-				for ( let x = 0; x < radialSegments; x ++ ) {
-
-					const c = centerIndexStart + x;
-					const i = centerIndexEnd + x;
-
-					if ( top === true ) {
-
-						// face top
-
-						indices.push( i, i + 1, c );
-
-					} else {
-
-						// face bottom
-
-						indices.push( i + 1, i, c );
-
-					}
-
-					groupCount += 3;
-
-				}
-
-				// add a group to the geometry. this will ensure multi material support
-
-				scope.addGroup( groupStart, groupCount, top === true ? 1 : 2 );
-
-				// calculate new start value for groups
-
-				groupStart += groupCount;
-
-			}
-
-		}
-
-	}
-
-	class ConeBufferGeometry extends CylinderBufferGeometry {
-
-		constructor( radius = 1, height = 1, radialSegments = 8, heightSegments = 1, openEnded = false, thetaStart = 0, thetaLength = Math.PI * 2 ) {
-
-			super( 0, radius, height, radialSegments, heightSegments, openEnded, thetaStart, thetaLength );
-
-			this.type = 'ConeBufferGeometry';
-
-			this.parameters = {
+				vertices: vertices,
+				indices: indices,
 				radius: radius,
-				height: height,
-				radialSegments: radialSegments,
-				heightSegments: heightSegments,
-				openEnded: openEnded,
-				thetaStart: thetaStart,
-				thetaLength: thetaLength
+				detail: detail
 			};
+
+			// default buffer data
+
+			const vertexBuffer = [];
+			const uvBuffer = [];
+
+			// the subdivision creates the vertex buffer data
+
+			subdivide( detail );
+
+			// all vertices should lie on a conceptual sphere with a given radius
+
+			applyRadius( radius );
+
+			// finally, create the uv data
+
+			generateUVs();
+
+			// build non-indexed geometry
+
+			this.setAttribute( 'position', new Float32BufferAttribute( vertexBuffer, 3 ) );
+			this.setAttribute( 'normal', new Float32BufferAttribute( vertexBuffer.slice(), 3 ) );
+			this.setAttribute( 'uv', new Float32BufferAttribute( uvBuffer, 2 ) );
+
+			if ( detail === 0 ) {
+
+				this.computeVertexNormals(); // flat normals
+
+			} else {
+
+				this.normalizeNormals(); // smooth normals
+
+			}
+
+			// helper functions
+
+			function subdivide( detail ) {
+
+				const a = new Vector3();
+				const b = new Vector3();
+				const c = new Vector3();
+
+				// iterate over all faces and apply a subdivison with the given detail value
+
+				for ( let i = 0; i < indices.length; i += 3 ) {
+
+					// get the vertices of the face
+
+					getVertexByIndex( indices[ i + 0 ], a );
+					getVertexByIndex( indices[ i + 1 ], b );
+					getVertexByIndex( indices[ i + 2 ], c );
+
+					// perform subdivision
+
+					subdivideFace( a, b, c, detail );
+
+				}
+
+			}
+
+			function subdivideFace( a, b, c, detail ) {
+
+				const cols = detail + 1;
+
+				// we use this multidimensional array as a data structure for creating the subdivision
+
+				const v = [];
+
+				// construct all of the vertices for this subdivision
+
+				for ( let i = 0; i <= cols; i ++ ) {
+
+					v[ i ] = [];
+
+					const aj = a.clone().lerp( c, i / cols );
+					const bj = b.clone().lerp( c, i / cols );
+
+					const rows = cols - i;
+
+					for ( let j = 0; j <= rows; j ++ ) {
+
+						if ( j === 0 && i === cols ) {
+
+							v[ i ][ j ] = aj;
+
+						} else {
+
+							v[ i ][ j ] = aj.clone().lerp( bj, j / rows );
+
+						}
+
+					}
+
+				}
+
+				// construct all of the faces
+
+				for ( let i = 0; i < cols; i ++ ) {
+
+					for ( let j = 0; j < 2 * ( cols - i ) - 1; j ++ ) {
+
+						const k = Math.floor( j / 2 );
+
+						if ( j % 2 === 0 ) {
+
+							pushVertex( v[ i ][ k + 1 ] );
+							pushVertex( v[ i + 1 ][ k ] );
+							pushVertex( v[ i ][ k ] );
+
+						} else {
+
+							pushVertex( v[ i ][ k + 1 ] );
+							pushVertex( v[ i + 1 ][ k + 1 ] );
+							pushVertex( v[ i + 1 ][ k ] );
+
+						}
+
+					}
+
+				}
+
+			}
+
+			function applyRadius( radius ) {
+
+				const vertex = new Vector3();
+
+				// iterate over the entire buffer and apply the radius to each vertex
+
+				for ( let i = 0; i < vertexBuffer.length; i += 3 ) {
+
+					vertex.x = vertexBuffer[ i + 0 ];
+					vertex.y = vertexBuffer[ i + 1 ];
+					vertex.z = vertexBuffer[ i + 2 ];
+
+					vertex.normalize().multiplyScalar( radius );
+
+					vertexBuffer[ i + 0 ] = vertex.x;
+					vertexBuffer[ i + 1 ] = vertex.y;
+					vertexBuffer[ i + 2 ] = vertex.z;
+
+				}
+
+			}
+
+			function generateUVs() {
+
+				const vertex = new Vector3();
+
+				for ( let i = 0; i < vertexBuffer.length; i += 3 ) {
+
+					vertex.x = vertexBuffer[ i + 0 ];
+					vertex.y = vertexBuffer[ i + 1 ];
+					vertex.z = vertexBuffer[ i + 2 ];
+
+					const u = azimuth( vertex ) / 2 / Math.PI + 0.5;
+					const v = inclination( vertex ) / Math.PI + 0.5;
+					uvBuffer.push( u, 1 - v );
+
+				}
+
+				correctUVs();
+
+				correctSeam();
+
+			}
+
+			function correctSeam() {
+
+				// handle case when face straddles the seam, see #3269
+
+				for ( let i = 0; i < uvBuffer.length; i += 6 ) {
+
+					// uv data of a single face
+
+					const x0 = uvBuffer[ i + 0 ];
+					const x1 = uvBuffer[ i + 2 ];
+					const x2 = uvBuffer[ i + 4 ];
+
+					const max = Math.max( x0, x1, x2 );
+					const min = Math.min( x0, x1, x2 );
+
+					// 0.9 is somewhat arbitrary
+
+					if ( max > 0.9 && min < 0.1 ) {
+
+						if ( x0 < 0.2 ) uvBuffer[ i + 0 ] += 1;
+						if ( x1 < 0.2 ) uvBuffer[ i + 2 ] += 1;
+						if ( x2 < 0.2 ) uvBuffer[ i + 4 ] += 1;
+
+					}
+
+				}
+
+			}
+
+			function pushVertex( vertex ) {
+
+				vertexBuffer.push( vertex.x, vertex.y, vertex.z );
+
+			}
+
+			function getVertexByIndex( index, vertex ) {
+
+				const stride = index * 3;
+
+				vertex.x = vertices[ stride + 0 ];
+				vertex.y = vertices[ stride + 1 ];
+				vertex.z = vertices[ stride + 2 ];
+
+			}
+
+			function correctUVs() {
+
+				const a = new Vector3();
+				const b = new Vector3();
+				const c = new Vector3();
+
+				const centroid = new Vector3();
+
+				const uvA = new Vector2();
+				const uvB = new Vector2();
+				const uvC = new Vector2();
+
+				for ( let i = 0, j = 0; i < vertexBuffer.length; i += 9, j += 6 ) {
+
+					a.set( vertexBuffer[ i + 0 ], vertexBuffer[ i + 1 ], vertexBuffer[ i + 2 ] );
+					b.set( vertexBuffer[ i + 3 ], vertexBuffer[ i + 4 ], vertexBuffer[ i + 5 ] );
+					c.set( vertexBuffer[ i + 6 ], vertexBuffer[ i + 7 ], vertexBuffer[ i + 8 ] );
+
+					uvA.set( uvBuffer[ j + 0 ], uvBuffer[ j + 1 ] );
+					uvB.set( uvBuffer[ j + 2 ], uvBuffer[ j + 3 ] );
+					uvC.set( uvBuffer[ j + 4 ], uvBuffer[ j + 5 ] );
+
+					centroid.copy( a ).add( b ).add( c ).divideScalar( 3 );
+
+					const azi = azimuth( centroid );
+
+					correctUV( uvA, j + 0, a, azi );
+					correctUV( uvB, j + 2, b, azi );
+					correctUV( uvC, j + 4, c, azi );
+
+				}
+
+			}
+
+			function correctUV( uv, stride, vector, azimuth ) {
+
+				if ( ( azimuth < 0 ) && ( uv.x === 1 ) ) {
+
+					uvBuffer[ stride ] = uv.x - 1;
+
+				}
+
+				if ( ( vector.x === 0 ) && ( vector.z === 0 ) ) {
+
+					uvBuffer[ stride ] = azimuth / 2 / Math.PI + 0.5;
+
+				}
+
+			}
+
+			// Angle around the Y axis, counter-clockwise when looking from above.
+
+			function azimuth( vector ) {
+
+				return Math.atan2( vector.z, - vector.x );
+
+			}
+
+
+			// Angle above the XZ plane.
+
+			function inclination( vector ) {
+
+				return Math.atan2( - vector.y, Math.sqrt( ( vector.x * vector.x ) + ( vector.z * vector.z ) ) );
+
+			}
 
 		}
 
@@ -30833,6 +30846,34 @@
 		if ( options.extrudePath !== undefined ) data.options.extrudePath = options.extrudePath.toJSON();
 
 		return data;
+
+	}
+
+	class OctahedronBufferGeometry extends PolyhedronBufferGeometry {
+
+		constructor( radius = 1, detail = 0 ) {
+
+			const vertices = [
+				1, 0, 0, 	- 1, 0, 0,	0, 1, 0,
+				0, - 1, 0, 	0, 0, 1,	0, 0, - 1
+			];
+
+			const indices = [
+				0, 2, 4,	0, 4, 3,	0, 3, 5,
+				0, 5, 2,	1, 2, 5,	1, 5, 3,
+				1, 3, 4,	1, 4, 2
+			];
+
+			super( vertices, indices, radius, detail );
+
+			this.type = 'OctahedronBufferGeometry';
+
+			this.parameters = {
+				radius: radius,
+				detail: detail
+			};
+
+		}
 
 	}
 
@@ -58927,89 +58968,6 @@
 	 * @author Mugen87 / https://github.com/Mugen87
 	 */
 
-	class PursuerGeometry extends BufferGeometry {
-
-		constructor() {
-
-			super();
-
-			const vertices = [];
-			const indices = [];
-
-			// top
-
-			vertices.push( 1, 1, - 1 ); // 0
-			vertices.push( - 1, 1, - 1 ); // 1
-			vertices.push( 1, 1, 0 ); // 2
-			vertices.push( - 1, 1, 0 ); // 3
-			vertices.push( 0, 0, 1 ); // 4
-
-			indices.push( 0, 1, 2 );
-			indices.push( 2, 1, 3 );
-			indices.push( 2, 3, 4 );
-
-			// bottom
-
-			vertices.push( 1, - 1, - 1 ); // 5
-			vertices.push( - 1, - 1, - 1 ); // 6
-			vertices.push( 1, - 1, 0 ); // 7
-			vertices.push( - 1, - 1, 0 ); // 8
-			vertices.push( 0, 0, 1 ); // 9
-
-			indices.push( 6, 5, 7 );
-			indices.push( 6, 7, 8 );
-			indices.push( 8, 7, 9 );
-
-			// left
-
-			vertices.push( 1, 1, - 1 ); // 10
-			vertices.push( 1, - 1, - 1 ); // 11
-			vertices.push( 1, 1, 0 ); // 12
-			vertices.push( 1, - 1, 0 ); // 13
-			vertices.push( 0, 0, 1 ); // 14
-
-			indices.push( 11, 10, 12 );
-			indices.push( 12, 13, 11 );
-			indices.push( 13, 12, 14 );
-
-			// right
-
-			vertices.push( - 1, - 1, - 1 ); // 15
-			vertices.push( - 1, 1, - 1 ); // 16
-			vertices.push( - 1, - 1, 0 ); // 17
-			vertices.push( - 1, 1, 0 ); // 18
-			vertices.push( 0, 0, 1 ); // 19
-
-			indices.push( 16, 15, 17 );
-			indices.push( 17, 18, 16 );
-			indices.push( 18, 17, 19 );
-
-			// back
-
-			vertices.push( 1, 1, - 1 ); // 20
-			vertices.push( 1, - 1, - 1 ); // 21
-			vertices.push( - 1, - 1, - 1 ); // 22
-			vertices.push( - 1, 1, - 1 ); // 23
-
-			indices.push( 21, 22, 23 );
-			indices.push( 23, 20, 21 );
-
-			this.setIndex( indices );
-			this.setAttribute( 'position', new Float32BufferAttribute( vertices, 3 ) );
-			this.computeVertexNormals();
-
-			this.scale( 0.5, 0.5, 0.5 );
-
-			this.computeBoundingSphere();
-
-		}
-
-	}
-
-	/**
-	 * @author Mugen87 / https://github.com/Mugen87
-	 */
-
 	class AnimationSystem {
 
 		constructor() {
@@ -60734,6 +60692,35 @@
 	      200,
 	    );
 	    this.camera.add(this.assetManager.listener);
+	    // --- 定義將棋形狀 ---
+	    const shogiShape = new Shape();
+	    // 繪製將棋五角形輪廓
+	    shogiShape.moveTo(0, 0.5); // 頂點
+	    shogiShape.lineTo(0.4, 0.2); // 右上
+	    shogiShape.lineTo(0.35, -0.4); // 右下
+	    shogiShape.lineTo(-0.35, -0.4); // 左下
+	    shogiShape.lineTo(-0.4, 0.2); // 左上
+	    shogiShape.lineTo(0, 0.5); // 回到頂點
+
+	    const shogiExtrudeSettings = {
+	      depth: 0.15,
+	      bevelEnabled: true,
+	      bevelThickness: 0.02,
+	      bevelSize: 0.02,
+	      bevelSegments: 2,
+	    };
+
+	    // 建立將棋幾何體
+	    const shogiGeometry = new ExtrudeBufferGeometry(
+	      shogiShape,
+	      shogiExtrudeSettings,
+	    );
+	    // 讓棋子「立起來」面對鏡頭方向
+	    shogiGeometry.rotateX(Math.PI * 0.5);
+
+	    // [敵人體系：八面體] - 不需旋轉也自然
+	    const enemyBodyGeometry = new OctahedronBufferGeometry(0.5, 0); // 敵人本體
+	    const enemyBulletGeometry = new OctahedronBufferGeometry(0.45, 0); // 敵人子彈
 
 	    // scene
 
@@ -60781,10 +60768,9 @@
 
 	    // player
 
-	    const playerGeometry = new ConeBufferGeometry(0.2, 1, 8);
-	    playerGeometry.rotateX(Math.PI * 0.5);
 	    const playerMaterial = new MeshLambertMaterial({ color: 0xffffff });
-	    this.playerMesh = new Mesh(playerGeometry, playerMaterial);
+
+	    this.playerMesh = new Mesh(shogiGeometry, playerMaterial);
 	    this.playerMesh.matrixAutoUpdate = false;
 	    this.playerMesh.castShadow = true;
 	    this.scene.add(this.playerMesh);
@@ -60806,16 +60792,14 @@
 	    this.playerProjectileMesh.frustumCulled = false;
 	    this.scene.add(this.playerProjectileMesh);
 
-	    // enemy projectile
+	    // // enemy projectile
 
-	    const enemyProjectileGeometry = new SphereBufferGeometry(0.4, 16, 16);
-	    enemyProjectileGeometry.rotateX(Math.PI * -0.5);
+	    // 敵人子彈 (改為八面體)
 	    const enemyProjectileMaterial = new MeshLambertMaterial({
 	      color: 0x333333,
 	    });
-
 	    this.enemyProjectileMesh = new InstancedMesh(
-	      enemyProjectileGeometry,
+	      enemyBulletGeometry,
 	      enemyProjectileMaterial,
 	      this.maxEnemyProjectiles,
 	    );
@@ -60823,29 +60807,21 @@
 	    this.enemyProjectileMesh.frustumCulled = false;
 	    this.scene.add(this.enemyProjectileMesh);
 
-	    // enemy destructible projectile
+	    // // enemy destructible projectile
 
-	    const enemyDestructibleProjectileGeometry = new SphereBufferGeometry(
-	      0.4,
-	      16,
-	      16,
-	    );
-	    enemyDestructibleProjectileGeometry.rotateX(Math.PI * -0.5);
+	    // 敵人可擊破子彈 (改為八面體)
 	    const enemyDestructibleProjectileMaterial = new MeshLambertMaterial({
 	      color: 0xbbbbbb,
 	    });
-
 	    this.enemyDestructibleProjectileMesh = new InstancedMesh(
-	      enemyDestructibleProjectileGeometry,
+	      enemyBulletGeometry,
 	      enemyDestructibleProjectileMaterial,
 	      this.maxEnemyProjectiles,
 	    );
 	    this.enemyDestructibleProjectileMesh.instanceMatrix.setUsage(
 	      DynamicDrawUsage,
 	    );
-	    this.enemyDestructibleProjectileMesh.frustumCulled = false;
 	    this.scene.add(this.enemyDestructibleProjectileMesh);
-
 	    // obstacle
 
 	    const obtacleGeometry = new BoxBufferGeometry(1, 1, 1);
@@ -60862,27 +60838,27 @@
 
 	    // pursuer enemy
 
-	    const pursuerGeometry = new PursuerGeometry();
+	    // 追擊者 (改為八面體)
 	    const pursuerMaterial = new MeshLambertMaterial({ color: 0x1a1a1a });
-
-	    this.pursuerMesh = new Mesh(pursuerGeometry, pursuerMaterial);
+	    this.pursuerMesh = new Mesh(enemyBodyGeometry, pursuerMaterial);
 	    this.pursuerMesh.matrixAutoUpdate = false;
 	    this.pursuerMesh.castShadow = true;
 
 	    // tower enemy
 
-	    const towerGeometry = new CylinderBufferGeometry(0.5, 0.5, 1, 16);
+	    // 塔 (改為八面體，稍微拉長)
 	    const towerMaterial = new MeshLambertMaterial({ color: 0x1a1a1a });
-
-	    this.towerMesh = new Mesh(towerGeometry, towerMaterial);
+	    this.towerMesh = new Mesh(enemyBodyGeometry, towerMaterial);
+	    this.towerMesh.scale.set(1, 1.5, 1); // 讓塔看起來比較高
+	    this.towerMesh.updateMatrix(); // <--- 建議加入，確保初始縮放被寫入矩陣
 	    this.towerMesh.matrixAutoUpdate = false;
 	    this.towerMesh.castShadow = true;
 
 	    // guard enemy
 
-	    const guardGeometry = new SphereBufferGeometry(0.5, 16, 16);
+	    // 守衛 (改為八面體)
 	    const guardMaterial = new MeshLambertMaterial({ color: 0x1a1a1a });
-	    this.guardMesh = new Mesh(guardGeometry, guardMaterial);
+	    this.guardMesh = new Mesh(enemyBodyGeometry, guardMaterial);
 	    this.guardMesh.matrixAutoUpdate = false;
 	    this.guardMesh.castShadow = true;
 

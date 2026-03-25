@@ -248,6 +248,35 @@ class World {
       200,
     );
     this.camera.add(this.assetManager.listener);
+    // --- 定義將棋形狀 ---
+    const shogiShape = new THREE.Shape();
+    // 繪製將棋五角形輪廓
+    shogiShape.moveTo(0, 0.5); // 頂點
+    shogiShape.lineTo(0.4, 0.2); // 右上
+    shogiShape.lineTo(0.35, -0.4); // 右下
+    shogiShape.lineTo(-0.35, -0.4); // 左下
+    shogiShape.lineTo(-0.4, 0.2); // 左上
+    shogiShape.lineTo(0, 0.5); // 回到頂點
+
+    const shogiExtrudeSettings = {
+      depth: 0.15,
+      bevelEnabled: true,
+      bevelThickness: 0.02,
+      bevelSize: 0.02,
+      bevelSegments: 2,
+    };
+
+    // 建立將棋幾何體
+    const shogiGeometry = new THREE.ExtrudeBufferGeometry(
+      shogiShape,
+      shogiExtrudeSettings,
+    );
+    // 讓棋子「立起來」面對鏡頭方向
+    shogiGeometry.rotateX(Math.PI * 0.5);
+
+    // [敵人體系：八面體] - 不需旋轉也自然
+    const enemyBodyGeometry = new THREE.OctahedronBufferGeometry(0.5, 0); // 敵人本體
+    const enemyBulletGeometry = new THREE.OctahedronBufferGeometry(0.45, 0); // 敵人子彈
 
     // scene
 
@@ -295,10 +324,9 @@ class World {
 
     // player
 
-    const playerGeometry = new THREE.ConeBufferGeometry(0.2, 1, 8);
-    playerGeometry.rotateX(Math.PI * 0.5);
     const playerMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
-    this.playerMesh = new THREE.Mesh(playerGeometry, playerMaterial);
+
+    this.playerMesh = new THREE.Mesh(shogiGeometry, playerMaterial);
     this.playerMesh.matrixAutoUpdate = false;
     this.playerMesh.castShadow = true;
     this.scene.add(this.playerMesh);
@@ -320,16 +348,14 @@ class World {
     this.playerProjectileMesh.frustumCulled = false;
     this.scene.add(this.playerProjectileMesh);
 
-    // enemy projectile
+    // // enemy projectile
 
-    const enemyProjectileGeometry = new THREE.SphereBufferGeometry(0.4, 16, 16);
-    enemyProjectileGeometry.rotateX(Math.PI * -0.5);
+    // 敵人子彈 (改為八面體)
     const enemyProjectileMaterial = new THREE.MeshLambertMaterial({
       color: 0x333333,
     });
-
     this.enemyProjectileMesh = new THREE.InstancedMesh(
-      enemyProjectileGeometry,
+      enemyBulletGeometry,
       enemyProjectileMaterial,
       this.maxEnemyProjectiles,
     );
@@ -337,29 +363,21 @@ class World {
     this.enemyProjectileMesh.frustumCulled = false;
     this.scene.add(this.enemyProjectileMesh);
 
-    // enemy destructible projectile
+    // // enemy destructible projectile
 
-    const enemyDestructibleProjectileGeometry = new THREE.SphereBufferGeometry(
-      0.4,
-      16,
-      16,
-    );
-    enemyDestructibleProjectileGeometry.rotateX(Math.PI * -0.5);
+    // 敵人可擊破子彈 (改為八面體)
     const enemyDestructibleProjectileMaterial = new THREE.MeshLambertMaterial({
       color: 0xbbbbbb,
     });
-
     this.enemyDestructibleProjectileMesh = new THREE.InstancedMesh(
-      enemyDestructibleProjectileGeometry,
+      enemyBulletGeometry,
       enemyDestructibleProjectileMaterial,
       this.maxEnemyProjectiles,
     );
     this.enemyDestructibleProjectileMesh.instanceMatrix.setUsage(
       THREE.DynamicDrawUsage,
     );
-    this.enemyDestructibleProjectileMesh.frustumCulled = false;
     this.scene.add(this.enemyDestructibleProjectileMesh);
-
     // obstacle
 
     const obtacleGeometry = new THREE.BoxBufferGeometry(1, 1, 1);
@@ -376,27 +394,27 @@ class World {
 
     // pursuer enemy
 
-    const pursuerGeometry = new PursuerGeometry();
+    // 追擊者 (改為八面體)
     const pursuerMaterial = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });
-
-    this.pursuerMesh = new THREE.Mesh(pursuerGeometry, pursuerMaterial);
+    this.pursuerMesh = new THREE.Mesh(enemyBodyGeometry, pursuerMaterial);
     this.pursuerMesh.matrixAutoUpdate = false;
     this.pursuerMesh.castShadow = true;
 
     // tower enemy
 
-    const towerGeometry = new THREE.CylinderBufferGeometry(0.5, 0.5, 1, 16);
+    // 塔 (改為八面體，稍微拉長)
     const towerMaterial = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });
-
-    this.towerMesh = new THREE.Mesh(towerGeometry, towerMaterial);
+    this.towerMesh = new THREE.Mesh(enemyBodyGeometry, towerMaterial);
+    this.towerMesh.scale.set(1, 1.5, 1); // 讓塔看起來比較高
+    this.towerMesh.updateMatrix(); // <--- 建議加入，確保初始縮放被寫入矩陣
     this.towerMesh.matrixAutoUpdate = false;
     this.towerMesh.castShadow = true;
 
     // guard enemy
 
-    const guardGeometry = new THREE.SphereBufferGeometry(0.5, 16, 16);
+    // 守衛 (改為八面體)
     const guardMaterial = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });
-    this.guardMesh = new THREE.Mesh(guardGeometry, guardMaterial);
+    this.guardMesh = new THREE.Mesh(enemyBodyGeometry, guardMaterial);
     this.guardMesh.matrixAutoUpdate = false;
     this.guardMesh.castShadow = true;
 

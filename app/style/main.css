@@ -43,6 +43,7 @@ canvas {
 }
 
 h2 {
+  text-align: center;
   font-size: 40px;
   margin: 0; /* 移除 margin */
   padding-top: 64px; /* 改用 padding */
@@ -52,12 +53,12 @@ button {
   background-color: var(--color-btns);
   border: none;
   color: var(--color-btns-txt);
-  text-align: left;
+  text-align: center;
   text-decoration: none;
   display: inline-block;
   font-size: 16px;
   width: 256px;
-  padding: 4px 8px;
+  padding: 16px 8px;
   letter-spacing: normal;
 }
 
@@ -97,11 +98,17 @@ button:focus {
   margin: 0 64px;
 }
 
+.row.content p {
+  display: flex;
+  justify-content: center;
+}
+
 #menu .footer {
   background-color: var(--color-menu-footer);
   margin: 0 64px 64px 64px; /* 修正 margin 寫法，確保底部間距正確 */
   padding: 16px;
   box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.25);
+  text-align: center;
 }
 
 #menu.hidden {
@@ -113,7 +120,6 @@ button:focus {
   justify-content: center;
   font-size: 40px;
   letter-spacing: 32px;
-  text-decoration: underline;
   z-index: 1;
   visibility: visible;
   opacity: 1;
@@ -134,5 +140,5 @@ button:focus {
 }
 
 #stage-counter {
-  text-align: right;
+  text-align: center;
 }

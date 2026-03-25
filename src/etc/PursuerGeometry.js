@@ -2,85 +2,53 @@
  * @author Mugen87 / https://github.com/Mugen87
  */
 
-import * as THREE from 'three';
+import * as THREE from "three";
 
 class PursuerGeometry extends THREE.BufferGeometry {
+  constructor() {
+    super();
 
-	constructor() {
+    const vertices = [];
+    const indices = [];
 
-		super();
+    // 頂點 (正確 0-8)
+    vertices.push(0.0, 0.8, 0.0); // 0 頂點
+    vertices.push(0.6, 0.2, 0.4); // 1
+    vertices.push(0.6, 0.2, -0.4); // 2
+    vertices.push(-0.6, 0.2, -0.4); // 3
+    vertices.push(-0.6, 0.2, 0.4); // 4
+    vertices.push(0.7, -0.3, 0.5); // 5
+    vertices.push(0.7, -0.3, -0.5); // 6
+    vertices.push(-0.7, -0.3, -0.5); // 7
+    vertices.push(-0.7, -0.3, 0.5); // 8
 
-		const vertices = [];
-		const indices = [];
+    // ==================== 正確 indices (只用 0-8) ====================
+    // 上錐 (頂點連四邊)
+    indices.push(0, 1, 2);
+    indices.push(0, 2, 3);
+    indices.push(0, 3, 4);
+    indices.push(0, 4, 1);
 
-		// top
+    // 側面 (上→下層)
+    indices.push(1, 5, 6); // 右前
+    indices.push(1, 6, 2);
+    indices.push(2, 6, 7); // 右後
+    indices.push(2, 7, 3);
+    indices.push(3, 7, 8); // 左後
+    indices.push(3, 8, 4);
+    indices.push(4, 8, 5); // 左前
+    indices.push(4, 5, 1);
 
-		vertices.push( 1, 1, - 1 ); // 0
-		vertices.push( - 1, 1, - 1 ); // 1
-		vertices.push( 1, 1, 0 ); // 2
-		vertices.push( - 1, 1, 0 ); // 3
-		vertices.push( 0, 0, 1 ); // 4
+    this.setIndex(indices);
+    this.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(vertices, 3),
+    );
+    this.computeVertexNormals();
 
-		indices.push( 0, 1, 2 );
-		indices.push( 2, 1, 3 );
-		indices.push( 2, 3, 4 );
-
-		// bottom
-
-		vertices.push( 1, - 1, - 1 ); // 5
-		vertices.push( - 1, - 1, - 1 ); // 6
-		vertices.push( 1, - 1, 0 ); // 7
-		vertices.push( - 1, - 1, 0 ); // 8
-		vertices.push( 0, 0, 1 ); // 9
-
-		indices.push( 6, 5, 7 );
-		indices.push( 6, 7, 8 );
-		indices.push( 8, 7, 9 );
-
-		// left
-
-		vertices.push( 1, 1, - 1 ); // 10
-		vertices.push( 1, - 1, - 1 ); // 11
-		vertices.push( 1, 1, 0 ); // 12
-		vertices.push( 1, - 1, 0 ); // 13
-		vertices.push( 0, 0, 1 ); // 14
-
-		indices.push( 11, 10, 12 );
-		indices.push( 12, 13, 11 );
-		indices.push( 13, 12, 14 );
-
-		// right
-
-		vertices.push( - 1, - 1, - 1 ); // 15
-		vertices.push( - 1, 1, - 1 ); // 16
-		vertices.push( - 1, - 1, 0 ); // 17
-		vertices.push( - 1, 1, 0 ); // 18
-		vertices.push( 0, 0, 1 ); // 19
-
-		indices.push( 16, 15, 17 );
-		indices.push( 17, 18, 16 );
-		indices.push( 18, 17, 19 );
-
-		// back
-
-		vertices.push( 1, 1, - 1 ); // 20
-		vertices.push( 1, - 1, - 1 ); // 21
-		vertices.push( - 1, - 1, - 1 ); // 22
-		vertices.push( - 1, 1, - 1 ); // 23
-
-		indices.push( 21, 22, 23 );
-		indices.push( 23, 20, 21 );
-
-		this.setIndex( indices );
-		this.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
-		this.computeVertexNormals();
-
-		this.scale( 0.5, 0.5, 0.5 );
-
-		this.computeBoundingSphere();
-
-	}
-
+    this.scale(0.5, 0.5, 0.5);
+    this.computeBoundingSphere();
+  }
 }
 
 export { PursuerGeometry };
