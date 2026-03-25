@@ -1,3 +1,18 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&display=swap");
+
+:root {
+  font-family: "Noto Sans JP", sans-serif;
+
+  /* colors */
+  --color-btns: #a0a0a0;
+  --color-btns-txt: #333333;
+  --color-btns-hover: #666666;
+  --color-btns-txt-hover: #e0e0e0;
+  --color-screen-bg: #c0c0c0;
+  --color-screen-txt: #2a2a2a;
+  --color-menu-footer: #d5d5d5;
+}
+
 * {
   -webkit-user-select: none;
   -moz-user-select: none;
@@ -34,13 +49,12 @@ h2 {
 }
 
 button {
-  background-color: #b7b1a1;
+  background-color: var(--color-btns);
   border: none;
-  color: #554e40;
+  color: var(--color-btns-txt);
   text-align: left;
   text-decoration: none;
   display: inline-block;
-  font-family: fot-rodin-pron, sans-serif;
   font-size: 16px;
   width: 256px;
   padding: 4px 8px;
@@ -48,8 +62,8 @@ button {
 }
 
 button:hover {
-  background-color: #6f6a61;
-  color: #d2cec4;
+  background-color: var(--color-btns-hover);
+  color: var(--color-btns-txt-hover);
   cursor: pointer;
   box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.1);
 }
@@ -64,8 +78,8 @@ button:focus {
   left: 0;
   height: 100%;
   width: 100%;
-  background-color: #d1c9b6;
-  color: #554e40;
+  background-color: var(--color-screen-bg);
+  color: var(--color-screen-txt);
   display: flex;
   flex-direction: column;
   /* 避免內陰影與邊距產生計算誤差 */
@@ -84,7 +98,7 @@ button:focus {
 }
 
 #menu .footer {
-  background-color: #dad2c0;
+  background-color: var(--color-menu-footer);
   margin: 0 64px 64px 64px; /* 修正 margin 寫法，確保底部間距正確 */
   padding: 16px;
   box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.25);
