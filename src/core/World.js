@@ -12,7 +12,7 @@ import { Player } from "../entities/Player.js";
 import { Guard } from "../entities/Guard.js";
 import { Pursuer } from "../entities/Pursuer.js";
 import { ProtectionShader, HitShader } from "../etc/Shaders.js";
-import { PursuerGeometry } from "../etc/PursuerGeometry.js";
+// import { PursuerGeometry } from "../etc/PursuerGeometry.js";
 import { AnimationSystem } from "./AnimationSystem.js";
 import { StageManager } from "./StageManager.js";
 import { Tower } from "../entities/Tower.js";
