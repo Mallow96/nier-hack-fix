@@ -108,7 +108,8 @@ button:focus {
   margin: 0 64px 64px 64px; /* 修正 margin 寫法，確保底部間距正確 */
   padding: 16px;
   box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.25);
-  text-align: center;
+
+  padding-left: 48px;
 }
 
 #menu.hidden {

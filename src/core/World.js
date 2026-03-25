@@ -333,8 +333,13 @@ class World {
 
     // player projectile
 
-    const playerProjectileGeometry = new THREE.PlaneBufferGeometry(0.2, 1);
-    playerProjectileGeometry.rotateX(Math.PI * -0.5);
+    // 參數：半徑 0.1, 長度 1, 側面分段 3 (分段 3 就是三角錐)
+    const playerProjectileGeometry = new THREE.ConeBufferGeometry(0.1, 1, 3);
+
+    // 關鍵：Cone 預設是直立的，我們需要旋轉它讓尖端朝向前方（Z軸）
+    // 根據你的 rotateX 經驗，通常需要轉向平躺
+    playerProjectileGeometry.rotateX(Math.PI * 0.5);
+
     const playerProjectileMaterial = new THREE.MeshBasicMaterial({
       color: 0xffffff,
     });
@@ -367,7 +372,9 @@ class World {
 
     // 敵人可擊破子彈 (改為八面體)
     const enemyDestructibleProjectileMaterial = new THREE.MeshLambertMaterial({
-      color: 0xbbbbbb,
+      color: 0xeeeeee,
+      emissive: 0xffffff, // 加上白色自發光
+      emissiveIntensity: 0.2, // 淡淡的亮度，確保在陰影處也看得見
     });
     this.enemyDestructibleProjectileMesh = new THREE.InstancedMesh(
       enemyBulletGeometry,
